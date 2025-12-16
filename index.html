@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OmniDownloader - Simple & Fast</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>OmniDownloader</h1>
+            <p>Unduh video & audio dari YouTube, TikTok, dan Instagram dengan cepat.</p>
+        </header>
+
+        <main class="downloader-card">
+            <form id="download-form">
+                <div class="input-group">
+                    <input type="url" id="video-url" placeholder="Tempel link YouTube, TikTok, atau Instagram di sini..." required>
+                </div>
+
+                <div class="format-options">
+                    <label>
+                        <input type="radio" name="format" value="video" checked>
+                        <span>Video</span>
+                    </label>
+                    <label>
+                        <input type="radio" name="format" value="audio">
+                        <span>Audio (MP3)</span>
+                    </label>
+                </div>
+
+                <button type="submit" id="download-btn">
+                    <span class="btn-text">Proses & Unduh</span>
+                    <div class="spinner"></div>
+                </button>
+            </form>
+
+            <div id="status-message"></div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+                  </html>
