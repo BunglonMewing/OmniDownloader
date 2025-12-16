@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const downloadBtn = document.getElementById('download-btn');
     const statusMessage = document.getElementById('status-message');
 
-    const API_ENDPOINT = 'https://api.vevioz.com/api/v1/download';
-    const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+    const API_ENDPOINT = 'https://social-media-video-downloader-test-production.up.railway.app/download';
+    const CORS_PROXY = 'https://api.codetabs.com/v1/proxy?quest=';
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -21,27 +21,38 @@ document.addEventListener('DOMContentLoaded', () => {
         showStatus('', '');
 
         try {
-            const apiUrl = `${CORS_PROXY}${encodeURIComponent(API_ENDPOINT)}?url=${encodeURIComponent(videoUrl)}`;
+            const apiFormat = format === 'audio' ? 'bestaudio' : 'best';
+            const targetUrl = `${API_ENDPOINT}?url=${encodeURIComponent(videoUrl)}&format=${apiFormat}`;
+            const apiUrl = `${CORS_PROXY}${targetUrl}`;
             const response = await fetch(apiUrl);
 
             if (!response.ok) {
-                throw new Error('Gagal menghubungi API. Coba lagi nanti.');
+                let errorMsg = 'Gagal menghubungi API. Coba lagi nanti.';
+                try {
+                    const errorData = await response.json();
+                    if (errorData && errorData.detail) {
+                       errorMsg = errorData.detail;
+                    }
+                } catch(e) {
+                    // response was not json, use default error.
+                }
+                throw new Error(errorMsg);
             }
 
-            const data = await response.json();
-
-            if (data.status !== 'ok') {
-                throw new data.msg || 'Link tidak valid atau tidak didukung.';
+            let filename = 'download';
+            const disposition = response.headers.get('content-disposition');
+            if (disposition && disposition.includes('attachment')) {
+                const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                const matches = filenameRegex.exec(disposition);
+                if (matches != null && matches[1]) {
+                    filename = matches[1].replace(/['"]/g, '');
+                }
             }
 
-            const downloadLink = format === 'audio' ? data.mp3 : data.mp4;
+            const blob = await response.blob();
 
-            if (!downloadLink) {
-                throw new Error(`Tidak ada link download untuk format ${format}.`);
-            }
+            downloadFile(blob, filename);
 
-            // Trigger download
-            downloadFile(downloadLink, data.title || 'download');
             showStatus('Download dimulai!', 'success');
 
         } catch (error) {
@@ -62,23 +73,15 @@ document.addEventListener('DOMContentLoaded', () => {
         statusMessage.className = type; // 'error' or 'success'
     }
 
-    function downloadFile(url, filename) {
-        fetch(url)
-            .then(response => response.blob())
-            .then(blob => {
-                const fileUrl = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = fileUrl;
-                a.download = `${filename.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.${url.endsWith('.mp3') ? 'mp3' : 'mp4'}`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(fileUrl);
-                document.body.removeChild(a);
-            })
-            .catch(error => {
-                console.error('Error fetching file:', error);
-                showStatus('Gagal mengunduh file.', 'error');
-            });
+    function downloadFile(blob, filename) {
+        const fileUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = fileUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(fileUrl);
+        document.body.removeChild(a);
     }
 });
